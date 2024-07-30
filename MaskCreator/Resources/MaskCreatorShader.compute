@@ -123,6 +123,7 @@ void FillTransferKernel (uint3 id : SV_DispatchThreadID)
 bool Square;
 bool Circle;
 float ShapeSize;
+bool Reverse;
 [numthreads(32,32,1)]
 void OverlayKernel (uint3 id : SV_DispatchThreadID)
 {
@@ -137,8 +138,10 @@ void OverlayKernel (uint3 id : SV_DispatchThreadID)
     } else {
         d = length(uv - SampledUV) - ShapeSize;
     }
-    if(d < 0) {
-        ResultInput = float4(lerp(ResultInput.xyz, float3(1,0,0), !Gradient ? 0.5f : saturate(abs(d) / ShapeSize)), 1);
+    if(!Reverse) {
+        if(d < 0) ResultInput = float4(lerp(ResultInput.xyz, float3(1,0,0), !Gradient ? 0.5f : saturate(abs(d) / ShapeSize)), 1);
+    } else {
+        if(d > 0) ResultInput = float4(lerp(ResultInput.xyz, float3(1,0,0), !Gradient ? 0.5f : (saturate(abs(d) / length(float2(screen_width, screen_height))))), 1);
     }
     Result[id.xy] = ResultInput;
 }
@@ -160,16 +163,29 @@ void ClearKernel (uint3 id : SV_DispatchThreadID)
     } else {
         d = length(uv - SampledUV) - ShapeSize;
     }
-    if(d < 0) {
-        if(Channel == 3) {
-            ResultInput = float4(lerp(ResultInput.xyz, float3(0,0,0), !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)), 1);
-        } else {
-            switch(Channel) {
-                case 0: ResultInput.x = lerp(ResultInput.x, 0, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
-                case 1: ResultInput.y = lerp(ResultInput.y, 0, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
-                case 2: ResultInput.z = lerp(ResultInput.z, 0, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
+    if(!Reverse) {
+        if(d < 0) {
+            if(Channel == 3) {
+                ResultInput = float4(lerp(ResultInput.xyz, Invert, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)), 1);
+            } else {
+                switch(Channel) {
+                    case 0: ResultInput.x = lerp(ResultInput.x, Invert, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
+                    case 1: ResultInput.y = lerp(ResultInput.y, Invert, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
+                    case 2: ResultInput.z = lerp(ResultInput.z, Invert, !Gradient ? 1.0f : saturate(abs(d) / ShapeSize)); break;
+                }
             }
-
+        }
+    } else {
+        if(d > 0) {
+            if(Channel == 3) {
+                ResultInput = float4(lerp(ResultInput.xyz, Invert, !Gradient ? 1.0f : (saturate(abs(d) / length(float2(screen_width, screen_height))))), 1);
+            } else {
+                switch(Channel) {
+                    case 0: ResultInput.x = lerp(ResultInput.x, Invert, !Gradient ? 1.0f : (saturate(abs(d) / length(float2(screen_width, screen_height))))); break;
+                    case 1: ResultInput.y = lerp(ResultInput.y, Invert, !Gradient ? 1.0f : (saturate(abs(d) / length(float2(screen_width, screen_height))))); break;
+                    case 2: ResultInput.z = lerp(ResultInput.z, Invert, !Gradient ? 1.0f : (saturate(abs(d) / length(float2(screen_width, screen_height))))); break;
+                }
+            }
         }
     }
     Result[id.xy] = ResultInput;

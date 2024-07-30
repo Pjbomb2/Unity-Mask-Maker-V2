@@ -34,6 +34,7 @@ public class MaskCreator : EditorWindow {
     private bool Gradient = true;
     private bool Fill = false;
     private bool Invert = false;
+    private bool Reverse = false;
     private bool Circle = false;
     private bool Square = false;
     private float ShapeSize = 1.0f;
@@ -204,17 +205,7 @@ public class MaskCreator : EditorWindow {
                 FillContainer.Add(FillLabel);
                 FillContainer.Add(FillToggle);
 
-                // VisualElement InvertContainer = CreateHorizontalBox("Invert Container");
-                //     Label InvertLabel = new Label("Invert: ");                
-                //     Toggle InvertToggle = new Toggle() {value = Invert};
-                //         InvertToggle.style.width = 25;
-                //         InvertToggle.style.height = 15;
-                //         InvertToggle.RegisterValueChangedCallback(evt => {Invert = evt.newValue;});
-                //         InvertLabel.style.width = 40;
-                // InvertContainer.Add(InvertLabel);
-                // InvertContainer.Add(InvertToggle);
             FillToggleContainer.Add(FillContainer);
-            // FillToggleContainer.Add(InvertContainer);
 
 
             VisualElement ShapesToggleContainer = CreateVerticalBox("Shapes Container");
@@ -237,9 +228,32 @@ public class MaskCreator : EditorWindow {
                         SquareLabel.style.width = 50;
                 SquareContainer.Add(SquareLabel);
                 SquareContainer.Add(SquareToggle);
+
             ShapesToggleContainer.Add(CircleContainer);
             ShapesToggleContainer.Add(SquareContainer);
 
+            VisualElement ShapeModiferContainer = CreateVerticalBox("Shape Modifier Container");
+                VisualElement InvertContainer = CreateHorizontalBox("Invert Container");
+                    Label InvertLabel = new Label("Invert: ");                
+                    Toggle InvertToggle = new Toggle() {value = Invert};
+                        InvertToggle.style.width = 25;
+                        InvertToggle.style.height = 15;
+                        InvertToggle.RegisterValueChangedCallback(evt => {Invert = evt.newValue;});
+                        InvertLabel.style.width = 50;
+                InvertContainer.Add(InvertLabel);
+                InvertContainer.Add(InvertToggle);
+
+                VisualElement ReverseContainer = CreateHorizontalBox("Reverse Container");
+                    Label ReverseLabel = new Label("Reverse: ");                
+                    Toggle ReverseToggle = new Toggle() {value = Reverse};
+                        ReverseToggle.style.width = 25;
+                        ReverseToggle.style.height = 15;
+                        ReverseToggle.RegisterValueChangedCallback(evt => {Reverse = evt.newValue;});
+                        ReverseLabel.style.width = 50;
+                ReverseContainer.Add(ReverseLabel);
+                ReverseContainer.Add(ReverseToggle);
+            ShapeModiferContainer.Add(InvertContainer);
+            ShapeModiferContainer.Add(ReverseContainer);
 
 
 
@@ -249,6 +263,7 @@ public class MaskCreator : EditorWindow {
         SettingsContainer.Add(ValueContainer);
         SettingsContainer.Add(FillToggleContainer);
         SettingsContainer.Add(ShapesToggleContainer);
+        SettingsContainer.Add(ShapeModiferContainer);
         VisualElement TextureContainer = CreateHorizontalBox("Texture Container");
             #region InputTexture
             VisualElement InputContainer = CreateVerticalBox("Input Container"); 
@@ -351,6 +366,7 @@ public class MaskCreator : EditorWindow {
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
                                     MainShader.SetFloat("ShapeSize", ShapeSize);
                                     MainShader.SetBool("Square", Square);
+                                    MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetBool("Gradient", Gradient);
                                     MainShader.SetBool("Circle", Circle);
                                     MainShader.SetVector("SampledUV", Vector2.Scale(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), OutputImage.uv.size) + OutputImage.uv.position, new Vector2(WorkingTexture.width, WorkingTexture.height)));
@@ -415,6 +431,8 @@ public class MaskCreator : EditorWindow {
                                     MainShader.SetFloat("ShapeSize", ShapeSize);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Gradient", Gradient);
+                                    MainShader.SetBool("Invert", Invert);
+                                    MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetInt("Channel", InvertChannel);
                                     MainShader.SetBool("Circle", Circle);
                                     MainShader.SetVector("SampledUV", Vector2.Scale(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), OutputImage.uv.size) + OutputImage.uv.position, new Vector2(WorkingTexture.width, WorkingTexture.height)));
@@ -436,6 +454,8 @@ public class MaskCreator : EditorWindow {
                                     MainShader.SetFloat("ShapeSize", ShapeSize);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Gradient", Gradient);
+                                    MainShader.SetBool("Invert", Invert);
+                                    MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetInt("Channel", InvertChannel);
                                     MainShader.SetBool("Circle", Circle);
                                     MainShader.SetVector("SampledUV", Vector2.Scale(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), OutputImage.uv.size) + OutputImage.uv.position, new Vector2(WorkingTexture.width, WorkingTexture.height)));
@@ -449,6 +469,7 @@ public class MaskCreator : EditorWindow {
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
                                     MainShader.SetFloat("ShapeSize", ShapeSize);
                                     MainShader.SetBool("Square", Square);
+                                    MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetBool("Gradient", Gradient);
                                     MainShader.SetBool("Circle", Circle);
                                     MainShader.SetVector("SampledUV", Vector2.Scale(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), OutputImage.uv.size) + OutputImage.uv.position, new Vector2(WorkingTexture.width, WorkingTexture.height)));
