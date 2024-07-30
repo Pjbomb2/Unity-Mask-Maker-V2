@@ -298,6 +298,7 @@ public class MaskCreator : EditorWindow {
                                 CreateRenderTexture(ref TempWorkingTexture, InputTexture.width, InputTexture.height);
                                 MainShader.SetInt("screen_width", InputTexture.width);
                                 MainShader.SetInt("screen_height", InputTexture.height);
+                                MainShader.SetInt("Channel", InvertChannel);
                                 MainShader.SetFloat("Sharpness", Sharpness);
                                 MainShader.SetBool("Gradient", Gradient);
                                 MainShader.SetTexture(MaskInitializeKernel, "Input", InputTexture);

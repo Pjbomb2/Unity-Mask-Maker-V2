@@ -35,10 +35,10 @@ Texture2D<float4> BackgroundCol;
 void MaskInit (uint3 id : SV_DispatchThreadID)
 {
     if(any(id.xy >= int2(screen_width, screen_height))) return;
-    float CurrentLum = luminance(Input.SampleLevel(my_point_clamp_sampler, id.xy / float2(screen_width, screen_height), 0));
-    float MaxLum = luminance(MaxCol[int2(3,3)]);
-    float MinLum = luminance(MinCol[int2(3,3)]);
-    float BackgroundLum = luminance(BackgroundCol[int2(3,3)]);
+    float CurrentLum = Channel == 3 ? luminance(Input.SampleLevel(my_point_clamp_sampler, id.xy / float2(screen_width, screen_height), 0)) : Input.SampleLevel(my_point_clamp_sampler, id.xy / float2(screen_width, screen_height), 0)[Channel];
+    float MaxLum = Channel == 3 ? luminance(MaxCol[int2(3,3)]) : MaxCol[int2(3,3)][Channel];
+    float MinLum = Channel == 3 ? luminance(MinCol[int2(3,3)]) : MinCol[int2(3,3)][Channel];
+    float BackgroundLum = Channel == 3 ? luminance(BackgroundCol[int2(3,3)]) : BackgroundCol[int2(3,3)][Channel];
     if(CurrentLum - MaxLum < Sharpness &&
         CurrentLum - MinLum >= -Sharpness &&
         abs(CurrentLum - BackgroundLum) > 0.005f) {
