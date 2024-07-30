@@ -6,11 +6,12 @@ int screen_width;
 int screen_height;
 #pragma kernel ClearCol
 
+int Channel;
 [numthreads(32,32,1)]
 void ClearCol (uint3 id : SV_DispatchThreadID)
 {
     if(any(id.xy >= int2(screen_width, screen_height))) return;
-    Result[id.xy] = float4(0,0,0,1);
+    Result[id.xy] = float4(Channel.xxx,1);
 }
 
 #pragma kernel SelectCol
@@ -55,7 +56,6 @@ void MaskInit (uint3 id : SV_DispatchThreadID)
 
 
 #pragma kernel InvertKernel
-int Channel;
 [numthreads(32,32,1)]
 void InvertKernel (uint3 id : SV_DispatchThreadID)
 {
@@ -191,7 +191,7 @@ void CleanKernel (uint3 id : SV_DispatchThreadID)
                 if(i == 0 && j == 0) continue;
                 int2 OffsetID = id.xy + int2(i, j);
                 if(any(OffsetID >= int2(screen_width, screen_height) || OffsetID < 0)) continue;
-                if((Channel == 3 ? luminance(Input[OffsetID]) : Input[OffsetID][Channel]) > 0.01f) {
+                if((Channel == 3 ? luminance(Input[OffsetID]) : Input[OffsetID][Channel]) > 0.5f * Sharpness) {
                     ValidNeighbors++;
                 }
             }

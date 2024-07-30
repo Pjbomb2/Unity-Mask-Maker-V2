@@ -78,7 +78,7 @@ public class MaskCreator : EditorWindow {
 
     private void CreateGUI() {
         if(MainShader == null) MainShader = Resources.Load<ComputeShader>("MaskCreatorShader");
-        CreateRenderTexture(ref MaxCol, 40, 40);
+        CreateRenderTexture(ref MaxCol, 40, 40, 1);
         CreateRenderTexture(ref MinCol, 40, 40);
         CreateRenderTexture(ref BackgroundCol, 40, 40);
         VisualElement SettingsContainer = CreateHorizontalBox("Settings Container");
@@ -166,6 +166,7 @@ public class MaskCreator : EditorWindow {
                         MainShader.SetTexture(CleanKernel, "Input", TempWorkingTexture);
                         MainShader.SetInt("screen_width", InputTexture.width);
                         MainShader.SetInt("screen_height", InputTexture.height);
+                        MainShader.SetFloat("Sharpness", Sharpness);
                         MainShader.SetInt("Channel", InvertChannel);
                         MainShader.Dispatch(CleanKernel, Mathf.CeilToInt((float)InputTexture.width / 32.0f), Mathf.CeilToInt((float)InputTexture.height / 32.0f), 1);
                         Graphics.Blit(WorkingTexture, TempWorkingTexture);
@@ -262,7 +263,7 @@ public class MaskCreator : EditorWindow {
 
                     InputImage.style.maxWidth = TextureViewDimensions.x;
                     InputImage.style.maxHeight = TextureViewDimensions.y;
-                    InputImage.style.minHeight = TextureViewDimensions.y;
+                    // InputImage.style.minHeight = TextureViewDimensions.y;
                     InputImage.uv = new Rect(0,0,1, 1);
                     InputImage.RegisterCallback<WheelEvent>(
                         e => {
@@ -287,6 +288,7 @@ public class MaskCreator : EditorWindow {
                                 MainShader.SetInt("screen_width", 40);
                                 MainShader.SetInt("screen_height", 40);
                                 MainShader.SetVector("SampledUV", Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), InputImage.uv.size) + InputImage.uv.position);
+                                Debug.Log(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), InputImage.uv.size) + InputImage.uv.position);
                                 MainShader.Dispatch(1, Mathf.CeilToInt((float)40 / 32.0f), Mathf.CeilToInt((float)40 / 32.0f), 1);
                                 CurrentInputSelection = -1;
                             } else {
@@ -333,7 +335,7 @@ public class MaskCreator : EditorWindow {
                 OutputImage = new Image() {image = TempWorkingTexture};
                     OutputImage.style.maxWidth = TextureViewDimensions.x;
                     OutputImage.style.maxHeight = TextureViewDimensions.y;
-                    OutputImage.style.minHeight = TextureViewDimensions.y;
+                    // OutputImage.style.minHeight = TextureViewDimensions.y;
                     OutputImage.uv = new Rect(0,0,1, 1);
                     OutputImage.RegisterCallback<WheelEvent>(
                         e => {
@@ -507,12 +509,13 @@ public class MaskCreator : EditorWindow {
     private void ReleaseSafe(ref RenderTexture Tex){if (Tex != null) Tex.Release();}
     private void ReleaseSafe(ref ComputeBuffer Buff) {if (Buff != null) {Buff.Release(); Buff = null;}}
 
-    private void CreateRenderTexture(ref RenderTexture ThisTex, int Width, int Height) {
+    private void CreateRenderTexture(ref RenderTexture ThisTex, int Width, int Height, int TempChan = 0) {
         if(ThisTex != null) ThisTex?.Release();
         ThisTex = new RenderTexture(Width, Height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         ThisTex.enableRandomWrite = true;
         ThisTex.Create();
         MainShader.SetTexture(0, "Result", ThisTex);
+        MainShader.SetInt("Channel", TempChan);
         MainShader.SetInt("screen_width", Width);
         MainShader.SetInt("screen_height", Height);
         MainShader.Dispatch(0, Mathf.CeilToInt((float)Width / 32.0f), Mathf.CeilToInt((float)Height / 32.0f), 1);
