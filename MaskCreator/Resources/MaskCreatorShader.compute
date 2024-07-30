@@ -20,7 +20,7 @@ float2 SampledUV;
 void SelectCol (uint3 id : SV_DispatchThreadID)
 {
     if(any(id.xy >= int2(screen_width, screen_height))) return;
-    Result[id.xy] = Input.SampleLevel(my_linear_clamp_sampler, SampledUV, 0);
+    Result[id.xy] = Input.SampleLevel(my_point_clamp_sampler, SampledUV, 0);
 }
 
 

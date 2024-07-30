@@ -263,7 +263,10 @@ public class MaskCreator : EditorWindow {
 
                     InputImage.style.maxWidth = TextureViewDimensions.x;
                     InputImage.style.maxHeight = TextureViewDimensions.y;
-                    // InputImage.style.minHeight = TextureViewDimensions.y;
+                    InputImage.style.minHeight = TextureViewDimensions.y;
+                    InputImage.style.minWidth = TextureViewDimensions.x;
+
+                    InputImage.scaleMode = ScaleMode.StretchToFill;
                     InputImage.uv = new Rect(0,0,1, 1);
                     InputImage.RegisterCallback<WheelEvent>(
                         e => {
@@ -334,8 +337,10 @@ public class MaskCreator : EditorWindow {
                 OutputImage = new Image() {image = TempWorkingTexture};
                     OutputImage.style.maxWidth = TextureViewDimensions.x;
                     OutputImage.style.maxHeight = TextureViewDimensions.y;
-                    // OutputImage.style.minHeight = TextureViewDimensions.y;
+                    OutputImage.style.minHeight = TextureViewDimensions.y;
+                    OutputImage.style.minWidth = TextureViewDimensions.x;
                     OutputImage.uv = new Rect(0,0,1, 1);
+                    OutputImage.scaleMode = ScaleMode.StretchToFill;
                     OutputImage.RegisterCallback<WheelEvent>(
                         e => {
                             if(e.ctrlKey) {
