@@ -288,7 +288,6 @@ public class MaskCreator : EditorWindow {
                                 MainShader.SetInt("screen_width", 40);
                                 MainShader.SetInt("screen_height", 40);
                                 MainShader.SetVector("SampledUV", Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), InputImage.uv.size) + InputImage.uv.position);
-                                Debug.Log(Vector2.Scale(new Vector2(e.localMousePosition.x / TextureViewDimensions.x, 1.0f - (e.localMousePosition.y / TextureViewDimensions.y)), InputImage.uv.size) + InputImage.uv.position);
                                 MainShader.Dispatch(1, Mathf.CeilToInt((float)40 / 32.0f), Mathf.CeilToInt((float)40 / 32.0f), 1);
                                 CurrentInputSelection = -1;
                             } else {
