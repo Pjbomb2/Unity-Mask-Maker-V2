@@ -37,7 +37,7 @@ public class MaskCreator : EditorWindow {
     private bool Reverse = false;
     private bool Circle = false;
     private bool Square = false;
-    private float ShapeSize = 1.0f;
+    private float ShapeSizeOuter = 1.0f;
 
 
     private int MaskInitializeKernel = 2;
@@ -47,6 +47,7 @@ public class MaskCreator : EditorWindow {
     private int OverlayKernel = 6;
     private int ClearKernel = 7;
     private int CleanKernel = 8;
+    private int DialateKernel = 9;
 
     private VisualElement CreateVerticalBox(string Name) {
         VisualElement VertBox = new VisualElement();
@@ -174,21 +175,20 @@ public class MaskCreator : EditorWindow {
                         OutputImage.MarkDirtyRepaint();
                     }) {text = "Clean"};
 
-                    InvertChannelField = new PopupField<string>("Channel: ");
-                    List<string> ChannelOptions = new List<string>();
-                        ChannelOptions.Add("R");
-                        ChannelOptions.Add("G");
-                        ChannelOptions.Add("B");
-                        ChannelOptions.Add("All");
-                        InvertChannelField.choices = ChannelOptions;
-                        InvertChannelField.index = InvertChannel;
-                        InvertChannelField.RegisterValueChangedCallback(evt => {InvertChannel = InvertChannelField.index;});
-                        InvertChannelField.ElementAt(0).style.minWidth = 45;
-                        InvertChannelField.ElementAt(1).style.minWidth = 35;
-
+                    Button DialateButton = new Button(() => {
+                        Graphics.Blit(TempWorkingTexture, WorkingTexture);
+                        MainShader.SetTexture(DialateKernel, "Result", WorkingTexture);
+                        MainShader.SetTexture(DialateKernel, "Input", TempWorkingTexture);
+                        MainShader.SetInt("screen_width", InputTexture.width);
+                        MainShader.SetInt("screen_height", InputTexture.height);
+                        MainShader.SetInt("Channel", InvertChannel);
+                        MainShader.Dispatch(DialateKernel, Mathf.CeilToInt((float)InputTexture.width / 32.0f), Mathf.CeilToInt((float)InputTexture.height / 32.0f), 1);
+                        Graphics.Blit(WorkingTexture, TempWorkingTexture);
+                        OutputImage.MarkDirtyRepaint();
+                    }) {text = "Dialate"};
                 ButtonContainer.Add(InvertButton);
                 ButtonContainer.Add(CleanButton);
-                ButtonContainer.Add(InvertChannelField);
+                ButtonContainer.Add(DialateButton);
 
             ValueContainer.Add(SharpnessContainer);
             ValueContainer.Add(GradientContainer);
@@ -205,7 +205,20 @@ public class MaskCreator : EditorWindow {
                 FillContainer.Add(FillLabel);
                 FillContainer.Add(FillToggle);
 
+                InvertChannelField = new PopupField<string>("Channel: ");
+                List<string> ChannelOptions = new List<string>();
+                    ChannelOptions.Add("R");
+                    ChannelOptions.Add("G");
+                    ChannelOptions.Add("B");
+                    ChannelOptions.Add("All");
+                    InvertChannelField.choices = ChannelOptions;
+                    InvertChannelField.index = InvertChannel;
+                    InvertChannelField.RegisterValueChangedCallback(evt => {InvertChannel = InvertChannelField.index;});
+                    InvertChannelField.ElementAt(0).style.minWidth = 45;
+                    InvertChannelField.ElementAt(1).style.minWidth = 35;
+
             FillToggleContainer.Add(FillContainer);
+            FillToggleContainer.Add(InvertChannelField);
 
 
             VisualElement ShapesToggleContainer = CreateVerticalBox("Shapes Container");
@@ -360,11 +373,12 @@ public class MaskCreator : EditorWindow {
                     OutputImage.RegisterCallback<WheelEvent>(
                         e => {
                             if(e.ctrlKey) {
-                                ShapeSize -= e.mouseDelta.y;
+                                ShapeSizeOuter -= e.mouseDelta.y;
+                                ShapeSizeOuter = Mathf.Max(ShapeSizeOuter, 0);
                                 if(!Fill && (Square || Circle)) {
                                     MainShader.SetInt("screen_width", WorkingTexture.width);
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
-                                    MainShader.SetFloat("ShapeSize", ShapeSize);
+                                    MainShader.SetFloat("ShapeSizeOuter", ShapeSizeOuter);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetBool("Gradient", Gradient);
@@ -373,6 +387,7 @@ public class MaskCreator : EditorWindow {
                                     MainShader.SetTexture(OverlayKernel, "Result", TempWorkingTexture);
                                     MainShader.SetTexture(OverlayKernel, "Input", WorkingTexture);
                                     MainShader.Dispatch(OverlayKernel, Mathf.CeilToInt((float)WorkingTexture.width / 32.0f), Mathf.CeilToInt((float)WorkingTexture.height / 32.0f), 1);
+                                    OutputImage.MarkDirtyRepaint();
                                 }
                             } else {
                                 OutputImage.uv = CalcZoom(
@@ -428,7 +443,7 @@ public class MaskCreator : EditorWindow {
                                 } else {
                                     MainShader.SetInt("screen_width", WorkingTexture.width);
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
-                                    MainShader.SetFloat("ShapeSize", ShapeSize);
+                                    MainShader.SetFloat("ShapeSizeOuter", ShapeSizeOuter);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Gradient", Gradient);
                                     MainShader.SetBool("Invert", Invert);
@@ -451,7 +466,7 @@ public class MaskCreator : EditorWindow {
                                 if(e.pressedButtons == 1) {
                                     MainShader.SetInt("screen_width", WorkingTexture.width);
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
-                                    MainShader.SetFloat("ShapeSize", ShapeSize);
+                                    MainShader.SetFloat("ShapeSizeOuter", ShapeSizeOuter);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Gradient", Gradient);
                                     MainShader.SetBool("Invert", Invert);
@@ -467,7 +482,7 @@ public class MaskCreator : EditorWindow {
                                 if((Square || Circle)) {
                                     MainShader.SetInt("screen_width", WorkingTexture.width);
                                     MainShader.SetInt("screen_height", WorkingTexture.height);
-                                    MainShader.SetFloat("ShapeSize", ShapeSize);
+                                    MainShader.SetFloat("ShapeSizeOuter", ShapeSizeOuter);
                                     MainShader.SetBool("Square", Square);
                                     MainShader.SetBool("Reverse", Reverse);
                                     MainShader.SetBool("Gradient", Gradient);
